@@ -60,7 +60,7 @@ class ProxyInstance(val profile: Profile, private val route: String = profile.ro
      * device storage, depending on which is currently available.
      */
     fun start(service: BaseService.Interface, stat: File, configFile: File, extraFlag: String? = null,
-              dnsRelay: Boolean = true) {
+              dnsRelay: Boolean = true, udpFallback: Boolean = false) {
         trafficMonitor = TrafficMonitor(stat)
 
         this.configFile = configFile
@@ -72,7 +72,11 @@ class ProxyInstance(val profile: Profile, private val route: String = profile.ro
             config.put("plugin", path).put("plugin_opts", opts.toString())
         }
         config.put("local_address", DataStore.listenAddress)
-        config.put("local_port", DataStore.portProxy)
+        if (udpFallback) {
+            config.put("local_port", 1111)
+        } else {
+            config.put("local_port", DataStore.portProxy)
+        }
         config.put("udp_max_associations", 256);
         configFile.writeText(config.toString())
 
@@ -80,7 +84,7 @@ class ProxyInstance(val profile: Profile, private val route: String = profile.ro
                 File((service as Context).applicationInfo.nativeLibraryDir, Executable.SS_LOCAL).absolutePath,
                 "--stat-path", stat.absolutePath,
                 "-c", configFile.absolutePath,
-                "--udp-bind-addr", "${DataStore.listenAddress}:${DataStore.portProxy}",
+                "--udp-bind-addr", "${DataStore.listenAddress}:1111",
         )
         if (service.isVpnService) cmd += arrayListOf("--vpn")
         if (extraFlag != null) cmd.add(extraFlag)

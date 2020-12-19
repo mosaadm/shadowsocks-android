@@ -216,12 +216,12 @@ class VpnService : BaseVpnService(), BaseService.Interface {
                 "--tunmtu", VPN_MTU.toString(),
                 "--sock-path", "sock_path",
                 "--dnsgw", "127.0.0.1:${DataStore.portLocalDns}",
+                "--udpgw-remote-server-addr", "127.0.0.1:1111",
                 "--loglevel", "warning")
         if (profile.ipv6) {
             cmd += "--netif-ip6addr"
             cmd += PRIVATE_VLAN6_ROUTER
         }
-        cmd += "--enable-udprelay"
         data.processes!!.start(cmd, onRestartCallback = {
             try {
                 sendFd(conn.fileDescriptor)
